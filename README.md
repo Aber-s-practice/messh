@@ -3,6 +3,7 @@
 ```bash
 git clone https://github.com/abersheeran/messh
 sudo mv messh/messh.py /usr/bin/messh
+sudo rm -rf messh
 sudo chmod +x /usr/bin/messh
 ```
 
