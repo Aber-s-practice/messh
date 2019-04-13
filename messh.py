@@ -4,11 +4,18 @@ import sys
 import json
 import getpass
 import argparse
-import colorama
+
+
+try:
+    import colorama
+except ImportError:
+    print("Auto install `colorama` by `pip3`")
+    os.system("sudo pip3 install colorama")
+    import colorama
 
 
 def ssh(config: dict):
-    cmd = f"sshpass -p {config['pass']} ssh {config['user']}@{config['host']}"
+    cmd = f"sshpass -p {config['pass']} ssh {config['user']}@{config['host']} -o StrictHostKeyChecking=no"
     if config.get("port"):
         cmd += f" -p {config['port']}"
     os.system(cmd)
