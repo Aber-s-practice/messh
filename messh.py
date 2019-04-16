@@ -7,32 +7,134 @@ import argparse
 
 
 try:
-    import colorama
+    import paramiko
 except ImportError:
-    print("Auto install `colorama` by `pip3`")
-    os.system("sudo pip3 install colorama")
-    import colorama
+    print("Auto install `paramiko` by `pip3`")
+    os.system("sudo pip3 install paramiko")
+    import paramiko
+
+if __name__ == "__main__":
+    try:
+        import colorama
+    except ImportError:
+        print("Auto install `colorama` by `pip3`")
+        os.system("sudo pip3 install colorama")
+        import colorama
+    colorama.init()
 
 
-if os.name == "posix":
-    import pty
+# Copyright (C) 2003-2007  Robey Pointer <robeypointer@gmail.com>
 
-    def ssh(config: dict):
-        cmd = f"sshpass -p {config['pass']} ssh {config['user']}@{config['host']} -o StrictHostKeyChecking=no"
-        if config.get("port"):
-            cmd += f" -p {config['port']}"
-        os.system(cmd)
-else:
-    import subprocess
+# This file is part of paramiko.
 
-    def ssh(config: dict):
-        cmd = f"ssh {config['user']}@{config['host']} -tt -o StrictHostKeyChecking=no"
-        if config.get("port"):
-            cmd += f" -p {config['port']}"
-        popen = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, encoding='UTF-8')
-        popen.stdin.write(config['pass'])
-        popen.stdin.flush()
-        popen.wait()
+# Paramiko is free software; you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation; either version 2.1 of the License, or (at your option)
+# any later version.
+
+# Paramiko is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+
+# You should have received a copy of the GNU Lesser General Public License
+# along with Paramiko; if not, write to the Free Software Foundation, Inc.,
+# 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
+
+
+import socket
+import sys
+from paramiko.py3compat import u
+
+# windows does not have termios...
+try:
+    import termios
+    import tty
+
+    has_termios = True
+except ImportError:
+    has_termios = False
+
+
+def interactive_shell(chan):
+    if has_termios:
+        posix_shell(chan)
+    else:
+        windows_shell(chan)
+
+
+def posix_shell(chan):
+    import select
+
+    oldtty = termios.tcgetattr(sys.stdin)
+    try:
+        tty.setraw(sys.stdin.fileno())
+        tty.setcbreak(sys.stdin.fileno())
+        chan.settimeout(0.0)
+
+        while True:
+            r, w, e = select.select([chan, sys.stdin], [], [])
+            if chan in r:
+                try:
+                    x = u(chan.recv(1024))
+                    if len(x) == 0:
+                        sys.stdout.write("\r\n*** EOF\r\n")
+                        break
+                    sys.stdout.write(x)
+                    sys.stdout.flush()
+                except socket.timeout:
+                    pass
+            if sys.stdin in r:
+                x = sys.stdin.read(1)
+                if len(x) == 0:
+                    break
+                chan.send(x)
+
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldtty)
+
+
+# thanks to Mike Looijmans for this code
+def windows_shell(chan):
+    import threading
+
+    sys.stdout.write(
+        "Line-buffered terminal emulation. Press F6 or ^Z to send EOF.\r\n\r\n"
+    )
+
+    def writeall(sock):
+        while True:
+            data = sock.recv(256)
+            if not data:
+                sys.stdout.write("\r\n*** EOF ***\r\n\r\n")
+                sys.stdout.flush()
+                break
+            sys.stdout.write(data.decode("UTF-8"))
+            sys.stdout.flush()
+
+    writer = threading.Thread(target=writeall, args=(chan,))
+    writer.start()
+
+    try:
+        while True:
+            d = sys.stdin.read(1)
+            if not d:
+                break
+            chan.send(d)
+    except EOFError:
+        # user hit ^Z or F6
+        pass
+
+
+def create_ssh_connection(config: dict):
+    ssh = paramiko.SSHClient()
+    ssh.load_system_host_keys()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(config['host'], port=config['port'], username=config['user'], password=config['pass'], compress=True)
+    channel = ssh.invoke_shell()
+    interactive_shell(channel)
+    channel.close()
+    ssh.close()
 
 
 class FileConfig:
@@ -53,7 +155,7 @@ class FileConfig:
 
     def display(self):
         for i, item in enumerate(self.data):
-            print(f"- [{i}] {colorama.Fore.GREEN}{item['user']}@{item['host']:<16}", end=" ")
+            print(f"- [{i}] {colorama.Fore.GREEN}{item['user']}@{item['host']:<16}{colorama.Fore.RESET}", end=" ")
             print(f"{item['name']}")
 
     def load(self):
@@ -94,15 +196,9 @@ def create_conf():
     return config
 
 
-def main():
+def get_config(args):
     config = create_conf()
-    parser = argparse.ArgumentParser(description='manager your ssh config')
-    parser.add_argument('-t', metavar='target', type=str, help='like `root@host` or index of config')
-    parser.add_argument('-p', metavar='port', type=int, help='port, an integer, default 22', default=22)
-    parser.add_argument('-n', metavar='name', help="host nickname will display", default="")
-    parser.add_argument("-l", help='display all ssh config without password', action="store_true")
-    parser.add_argument("-d", metavar='delete', type=int, help='delete ssh config with index')
-    args = parser.parse_args()
+
     if args.l:
         config.display()
         return
@@ -116,7 +212,7 @@ def main():
         parser.print_help()
         return
     except IndexError:
-        print(colorama.Fore.RED+"Over index!")
+        print(colorama.Fore.RED+"Over index!"+colorama.Fore.RESET)
         return
     except ValueError:
         try:
@@ -131,11 +227,19 @@ def main():
             }
             config.append(item)
         except IndexError:
-            print(colorama.Fore.RED+"Must input target(-t) like: user@host or index of config")
+            print(colorama.Fore.RED+"Must input target(-t) like: user@host or index of config"+colorama.Fore.RESET)
             return
-    ssh(item)
+    return item
 
 
 if __name__ == "__main__":
-    colorama.init(True)
-    main()
+    parser = argparse.ArgumentParser(description='manager your ssh config')
+    parser.add_argument('-t', metavar='target', type=str, help='like `root@host` or index of config')
+    parser.add_argument('-p', metavar='port', type=int, help='port, an integer, default 22', default=22)
+    parser.add_argument('-n', metavar='name', help="host nickname will display", default="")
+    parser.add_argument("-l", help='display all ssh config without password', action="store_true")
+    parser.add_argument("-d", metavar='delete', type=int, help='delete ssh config with index')
+    args = parser.parse_args()
+    item = get_config(args)
+    if item is not None:
+        create_ssh_connection(item)
