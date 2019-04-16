@@ -77,7 +77,7 @@ def main():
     parser.add_argument('-p', metavar='port', type=int, help='port, an integer, default 22', default=22)
     parser.add_argument('-n', metavar='name', help="host nickname will display", default="")
     parser.add_argument("-l", help='display all ssh config without password', action="store_true")
-    parser.add_argument("-d", type=int, help='delete ssh config with index')
+    parser.add_argument("-d", metavar='delete', type=int, help='delete ssh config with index')
     args = parser.parse_args()
     if args.l:
         config.display()
