@@ -70,8 +70,18 @@ class FileConfig:
         self.save()
 
 
+def create_conf():
+    """create and return FileConfig object"""
+    if os.name == "posix":
+        root = "/etc"
+    else:
+        root = os.environ.get("windir", "C:")
+    config = FileConfig(os.path.join(root, 'messh.conf'))
+    return config
+
+
 def main():
-    config = FileConfig("/etc/messh.conf")
+    config = create_conf()
     parser = argparse.ArgumentParser(description='manager your ssh config')
     parser.add_argument('-t', metavar='target', type=str, help='like `root@host` or index of config')
     parser.add_argument('-p', metavar='port', type=int, help='port, an integer, default 22', default=22)
