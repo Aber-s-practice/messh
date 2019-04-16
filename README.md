@@ -1,3 +1,9 @@
+# messh.py
+
+A useful cross-platform SSH configuration manager.
+
+Thanks to [paramiko](https://github.com/paramiko/paramiko/blob/master/demos/interactive.py) for providing cross-platform support.
+
 ## Install
 
 ```bash
