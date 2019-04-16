@@ -13,14 +13,13 @@ except ImportError:
     os.system("sudo pip3 install paramiko")
     import paramiko
 
-if __name__ == "__main__":
-    try:
-        import colorama
-    except ImportError:
-        print("Auto install `colorama` by `pip3`")
-        os.system("sudo pip3 install colorama")
-        import colorama
-    colorama.init()
+try:
+    import colorama
+except ImportError:
+    print("Auto install `colorama` by `pip3`")
+    os.system("sudo pip3 install colorama")
+    import colorama
+colorama.init()
 
 
 # Copyright (C) 2003-2007  Robey Pointer <robeypointer@gmail.com>
