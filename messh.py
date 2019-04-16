@@ -39,9 +39,8 @@ class FileConfig:
 
     def display(self):
         for i, item in enumerate(self.data):
-            print(f"- [{i}] {item['name']}", end=" ")
-            print(colorama.Fore.GREEN + f"{item['user']}@{item['host']}")
-        return
+            print(f"- [{i}] {colorama.Fore.GREEN}{item['user']}@{item['host']:<16}", end=" ")
+            print(f"{item['name']}")
 
     def load(self):
         try:
@@ -68,6 +67,7 @@ class FileConfig:
 
     def delete(self, index: int):
         del self.data[index]
+        self.save()
 
 
 def main():
