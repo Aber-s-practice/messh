@@ -7,24 +7,34 @@ sudo mv messh/messh.py /usr/bin/messh && sudo rm -rf messh && sudo chmod +x /usr
 
 ## How to use
 
+Get help about messh
+
 ```bash
 messh -h
 ```
+
+Display all ssh-config in messh
 
 ```
 messh -l
 ```
 
-```
-messh -d 0
-```
+Create ssh connection and auto save it in config list
 
 ```
 messh -t root@host -p 7878 -n "Myself VPS"
 ```
 
+Use config by index to create ssh connection
+
 ```
 messh -t 0
+```
+
+Delete config by index(integer)
+
+```
+messh -d 0
 ```
 
 ## Security
