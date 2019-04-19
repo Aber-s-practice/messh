@@ -90,7 +90,7 @@ def get_config(args):
         return
     elif args.e is not None:
         item = config.data[args.e]
-        item['name'] = input(f"input new name for{item['user']}@{item['host']}")
+        item['name'] = input(f"input new name for {colorama.Fore.GREEN}{item['user']}@{item['host']}{colorama.Fore.RESET}: ")
         config.update(item)
         return
 
