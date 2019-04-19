@@ -14,7 +14,7 @@ except ImportError:
     import colorama
 
 
-def ssh(config: dict):
+def create_ssh_connection(config: dict):
     cmd = f"sshpass -p {config['pass']} ssh {config['user']}@{config['host']} -o StrictHostKeyChecking=no"
     if config.get("port"):
         cmd += f" -p {config['port']}"
@@ -53,7 +53,7 @@ class FileConfig:
         with open(self.path, "w+") as file:
             json.dump(self.data, file, indent=4)
 
-    def append(self, item: dict):
+    def update(self, item: dict):
         assert item.get("user") is not None
         assert item.get("host") is not None
         assert item.get("pass") is not None
@@ -80,21 +80,21 @@ def create_conf():
     return config
 
 
-def main():
+def get_config(args):
     config = create_conf()
-    parser = argparse.ArgumentParser(description='manager your ssh config')
-    parser.add_argument('-t', metavar='target', type=str, help='like `root@host` or index of config')
-    parser.add_argument('-p', metavar='port', type=int, help='port, an integer, default 22', default=22)
-    parser.add_argument('-n', metavar='name', help="host nickname will display", default="")
-    parser.add_argument("-l", metavar="list", help='display all ssh config without password', action="store_true")
-    parser.add_argument("-d", metavar='delete', type=int, help='delete ssh config with index')
-    args = parser.parse_args()
+
     if args.l:
         config.display()
         return
     elif args.d is not None:
         config.delete(args.d)
         return
+    elif args.e is not None:
+        item = config.data[args.e]
+        item['name'] = input(f"input new name for{item['user']}@{item['host']}")
+        config.update(item)
+        return
+
     try:
         index = int(args.t)
         item = config.data[index]
@@ -115,11 +115,26 @@ def main():
                 'name': args.n,
                 'pass': password,
             }
-            config.append(item)
+            config.update(item)
         except IndexError:
             print(colorama.Fore.RED+"Must input target(-t) like: user@host or index of config")
             return
-    ssh(item)
+    return item
+
+
+def main():
+    config = create_conf()
+    parser = argparse.ArgumentParser(description='manager your ssh config')
+    parser.add_argument('-t', metavar='target', type=str, help='like `root@host` or index of config')
+    parser.add_argument('-p', metavar='port', type=int, help='port, an integer, default 22', default=22)
+    parser.add_argument('-e', metavar='edit', type=int, help='edit ssh config name with index')
+    parser.add_argument('-n', metavar='name', help="host nickname will display", default="")
+    parser.add_argument("-l", help='display all ssh config without password', action="store_true")
+    parser.add_argument("-d", metavar='delete', type=int, help='delete ssh config with index')
+    args = parser.parse_args()
+    item = get_config(args)
+    if item is not None:
+        create_ssh_connection(item)
 
 
 if __name__ == "__main__":
