@@ -82,7 +82,6 @@ def create_conf():
 
 def get_config(args):
     config = create_conf()
-
     if args.l:
         config.display()
         return
