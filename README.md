@@ -1,6 +1,6 @@
 # messh.py
 
-A useful cross-platform SSH configuration manager.
+A useful SSH configuration manager.
 
 ## Install
 
