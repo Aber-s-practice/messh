@@ -17,7 +17,7 @@ In windows
 
 ```bat
 git clone https://github.com/abersheeran/messh
-mv messh/messh.py %WINDIR% && rmdir /s /q messh
+move messh\messh.py %WINDIR% && rmdir /s /q messh
 ```
 
 ## How to use
