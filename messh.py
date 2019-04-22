@@ -98,7 +98,7 @@ def get_config(args):
         index = int(args.t)
         item = config.data[index]
     except TypeError:
-        parser.print_help()
+        print(colorama.Fore.BLUE+"A useful SSH configuration manager.")
         return
     except IndexError:
         print(colorama.Fore.RED+"Over index!")
