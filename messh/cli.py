@@ -53,7 +53,8 @@ def edit(index):
 @click.argument('target')
 @click.option('--port', metavar='port', type=int, help='port, an integer, default 22', default=22)
 @click.option('--name', metavar='name', help="host nickname will display", default="")
-def connect(target, port, name):
+@click.option('--only-create', ' /-O', metavar='only-create', help="only update a ssh config without connect", default=False)
+def connect(target, port, name, only_create):
     try:
         target = int(target)
         item = config.data[target]
@@ -79,7 +80,8 @@ def connect(target, port, name):
         show_list()
         sys.exit(1)
     # create ssh connection
-    create_ssh_connection(item)
+    if not only_create:
+        create_ssh_connection(item)
 
 
 if __name__ == "__main__":
