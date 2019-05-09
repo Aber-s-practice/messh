@@ -20,9 +20,16 @@ def main():
 
 
 def show_list():
-    for i, item in enumerate(config.data):
-        print(f"- [{i}] {colorama.Fore.GREEN}{item['user']}@{item['host']:<16}", end=" ")
-        print(f"{item['name']}")
+    print("Configuration list")
+    if config.data:
+        for i, item in enumerate(config.data):
+            print("- ", end="")
+            print(f"[{i}] {colorama.Fore.GREEN}{item['user']}@{item['host']:<16}", end=" ")
+            print(f"{item['name']}")
+    else:
+        print("  ", end="")
+        print(colorama.Fore.BLUE+"Empty list")
+    print()
 
 
 @main.command(name="list", help="display all ssh configurations")
