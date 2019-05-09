@@ -22,7 +22,7 @@ Display all ssh-config in messh
 messh.py list
 ```
 
-Create ssh connection and auto save it in config list
+Create ssh connection and auto save it in config list, use `--only-create` only update config without creating ssh connection.
 
 ```
 messh.py connect root@host --port 7878 --name "Myself VPS"
