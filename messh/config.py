@@ -51,7 +51,7 @@ class FileConfig:
 def create_conf():
     """create and return FileConfig object"""
     if os.name == "posix":
-        root = "/etc"
+        root = "~"
     else:
         root = os.environ.get("windir", "C:")
     config = FileConfig(os.path.join(root, 'messh.conf'))
