@@ -50,4 +50,4 @@ messh delete 0
 
 ## Security
 
-All config would be write to `/etc/messh.conf` by JSON. **Protect it!**
+All config would be write to `~/messh.conf` by JSON. **Protect it!**
