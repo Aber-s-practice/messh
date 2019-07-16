@@ -18,11 +18,11 @@ URL = 'https://github.com/abersheeran/messh'
 EMAIL = 'abersheeran@qq.com'
 AUTHOR = 'Aber Sheeran'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'colorama', 'click', 'paramiko'
+    'colorama', 'click', 'paramiko', 'pysftp'
 ]
 
 # What packages are optional?
